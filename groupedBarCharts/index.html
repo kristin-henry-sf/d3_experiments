@@ -17,9 +17,9 @@ body {
   fill: steelblue;
 }
 
-.x.axis path {
+/*.x.axis path {
   display: none;
-}
+}*/
 
 </style>
 <body>
@@ -28,8 +28,12 @@ body {
 <script src="groupedBarChart.js"></script>
 <script>
 
-var catHeader = "xcat";
-var yLabel = "Counts";
-drawGroupedBarChart("data_anon.csv", "#chart", catHeader, yLabel);
+var dataFile = "data_anon.csv", 
+    targDiv = "#chart",
+    groupsHeader = "Groups",
+    yLabel = "Counts",
+    colorRange = ["#762a83", "#af8dc3", "#e7d4e8", "#7fbf7b", "#1b7837"];
+
+drawGroupedBarChart(dataFile, targDiv, groupsHeader, yLabel, colorRange);
 
 </script>

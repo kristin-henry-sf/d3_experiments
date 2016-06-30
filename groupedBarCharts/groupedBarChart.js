@@ -1,5 +1,7 @@
+// by Kristin Henry
+// modified from  Mike Bostock's example at http://bl.ocks.org/mbostock/3887051
 
-function drawGroupedBarChart(dataFile, targ, catHeader, yLabel){
+function drawGroupedBarChart(dataFile, targ, grpHeader, yLabel, colorRange){
 
 
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -8,17 +10,14 @@ function drawGroupedBarChart(dataFile, targ, catHeader, yLabel){
 
   var x0 = d3.scale.ordinal()
       .rangeRoundBands([0, width], .1);
-
-  var x1 = d3.scale.ordinal();
+  
+  var x1 = d3.scale.ordinal();  /// used within each band of x0, for groups
 
   var y = d3.scale.linear()
       .range([height, 0]);
 
   var color = d3.scale.ordinal()
-      //.range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-      //.range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-      // .range(["#762a83", "#af8dc3", "#e7d4e8", "#d9f0d3", "#7fbf7b", "#1b7837"]);
-      .range(["#762a83", "#af8dc3", "#e7d4e8", "#7fbf7b", "#1b7837"]);
+      .range(colorRange);
 
 
   var xAxis = d3.svg.axis()
@@ -40,15 +39,15 @@ function drawGroupedBarChart(dataFile, targ, catHeader, yLabel){
   d3.csv(dataFile, function(error, data) {
     if (error) throw error;
 
-    var ageNames = d3.keys(data[0]).filter(function(key) { return key !== catHeader; });
+    var subgroupNames = d3.keys(data[0]).filter(function(key) { return key !== grpHeader; });
 
     data.forEach(function(d) {
-      d.ages = ageNames.map(function(name) { return {name: name, value: +d[name]}; });
+      d.subgroups = subgroupNames.map(function(name) { return {name: name, value: +d[name]}; });
     });
 
-    x0.domain(data.map(function(d) { return d.xcat; }));
-    x1.domain(ageNames).rangeRoundBands([0, x0.rangeBand()]);
-    y.domain([0, d3.max(data, function(d) { return d3.max(d.ages, function(d) { return d.value; }); })]);
+    x0.domain(data.map(function(d) { return d[grpHeader]; }));
+    x1.domain(subgroupNames).rangeRoundBands([0, x0.rangeBand()]);
+    y.domain([0, d3.max(data, function(d) { return d3.max(d.subgroups, function(d) { return d.value; }); })]);
 
     svg.append("g")
         .attr("class", "x axis")
@@ -65,14 +64,14 @@ function drawGroupedBarChart(dataFile, targ, catHeader, yLabel){
         .style("text-anchor", "end")
         .text(yLabel);
 
-    var state = svg.selectAll(".state")
+    var group = svg.selectAll(".group")
         .data(data)
       .enter().append("g")
-        .attr("class", "state")
-        .attr("transform", function(d) { return "translate(" + x0(d.xcat) + ",0)"; });
+        .attr("class", "group")
+        .attr("transform", function(d) { return "translate(" + x0(d[groupsHeader]) + ",0)"; });
 
-    state.selectAll("rect")
-        .data(function(d) { return d.ages; })
+    group.selectAll("rect")
+        .data(function(d) { return d.subgroups; })
       .enter().append("rect")
         .attr("width", x1.rangeBand())
         .attr("x", function(d) { return x1(d.name); })
@@ -81,7 +80,7 @@ function drawGroupedBarChart(dataFile, targ, catHeader, yLabel){
         .style("fill", function(d) { return color(d.name); });
 
     var legend = svg.selectAll(".legend")
-        .data(ageNames.slice().reverse())
+        .data(subgroupNames.slice().reverse())
       .enter().append("g")
         .attr("class", "legend")
         .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
