@@ -1,0 +1,149 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="groupedBarChart.js"></script>
+
+    <script type="text/javascript">
+      // Your Client ID can be retrieved from your project in the Google
+      // Developer Console, https://console.developers.google.com
+      var CLIENT_ID = '582427437460-dhivhb8bj6mlu31geoidteuif5keivvc.apps.googleusercontent.com';//'<YOUR_CLIENT_ID>';
+
+      var SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
+
+      var SPREADSEET_ID = '1okEqf9QG_nQZtNBbBtzzGhX-jTu2tyTv7in5NSfl8s8';
+
+      var DATA_RANGE = 'data_anon.csv';
+
+      /**
+       * Check if current user has authorized this application.
+       */
+      function checkAuth() {
+        gapi.auth.authorize(
+          {
+            'client_id': CLIENT_ID,
+            'scope': SCOPES.join(' '),
+            'immediate': true
+          }, handleAuthResult);
+      }
+
+      /**
+       * Handle response from authorization server.
+       *
+       * @param {Object} authResult Authorization result.
+       */
+      function handleAuthResult(authResult) {
+        var authorizeDiv = document.getElementById('authorize-div');
+        if (authResult && !authResult.error) {
+          // Hide auth UI, then load client library.
+          authorizeDiv.style.display = 'none';
+          loadSheetsApi();
+        } else {
+          // Show auth UI, allowing the user to initiate authorization by
+          // clicking authorize button.
+          authorizeDiv.style.display = 'inline';
+        }
+      }
+
+      /**
+       * Initiate auth flow in response to user clicking authorize button.
+       *
+       * @param {Event} event Button click event.
+       */
+      function handleAuthClick(event) {
+        gapi.auth.authorize(
+          {client_id: CLIENT_ID, scope: SCOPES, immediate: false},
+          handleAuthResult);
+        return false;
+      }
+
+      /**
+       * Load Sheets API client library.
+       */
+      function loadSheetsApi() {
+        var discoveryUrl =
+            'https://sheets.googleapis.com/$discovery/rest?version=v4';
+        gapi.client.load(discoveryUrl).then(listMajors);
+      }
+
+      /**
+       * Print the names and majors of students in a sample spreadsheet:
+       * We're using a diferent spreadsheet here, but this is the example from google API:
+       * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
+       */
+      function listMajors() {
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSEET_ID, 
+          range: DATA_RANGE, 
+        }).then(function(response) {
+          var range = response.result;        
+
+          if (range.values.length > 0) {
+            // ToDo: figure out how to get this done with API, instead of converting....inneficient this way!
+            // D3 expects data as csv formatted string, so convert from arrays to string
+            var csv_content = range.values.map(function(d){
+                return d.join();
+            }).join('\n');
+
+            
+            // legacy....from example code
+            // appendPre('Name, Major:');
+            appendPre(range.values[0])
+            for (i = 1; i < range.values.length; i++) {
+              var row = range.values[i];
+              appendPre(row);
+            }
+
+            //----------------------------------------------------------------
+            //  Send data to D3 Viz here            
+
+            var targDiv = "#chart1",
+               groupsHeader = range.values[0],//"Groups",
+               yLabel = "Counts",
+               colorRange = ["#762a83", "#af8dc3", "#e7d4e8", "#7fbf7b", "#1b7837"];
+
+            drawGroupedBarChart(csv_content, targDiv, groupsHeader, yLabel, colorRange);
+            //--------------------------------------------------------------------------
+
+
+
+
+          } else {
+            appendPre('No data found.');
+          }
+        }, function(response) {
+          appendPre('Error: ' + response.result.error.message);
+        });
+      }
+
+      /**
+       * Append a pre element to the body containing the given message
+       * as its text node.
+       *
+       * @param {string} message Text to be placed in pre element.
+       */
+      function appendPre(message) {
+        var pre = document.getElementById('output');
+        var textContent = document.createTextNode(message + '\n');
+        pre.appendChild(textContent);
+      }
+
+
+    </script>
+    <script src="https://apis.google.com/js/client.js?onload=checkAuth">
+    </script>
+  </head>
+  <body>
+    
+    <div id="authorize-div" style="display: none">
+      <span>Authorize access to Google Sheets API</span>
+      <!--Button for the user to click to initiate auth sequence -->
+      <button id="authorize-button" onclick="handleAuthClick(event)">
+        Authorize
+      </button>
+    </div>
+    <pre id="output"></pre>
+    <p>Summary of visits for Jan 1</p>
+    <div id="chart1"></div>
+  </body>
+</html>

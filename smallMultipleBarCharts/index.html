@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #333;
+  shape-rendering: crispEdges;
+}
+
+
+/*.x.axis path {
+  display: none;
+}*/
+
+</style>
+<body>
+<div id="chart1"></div>
+<div id="chart2"></div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="smallMultipleBarChart.js"></script>
+<script>
+
+var dataFile = "data_anon.csv", 
+    targDiv = "#chart1",
+    groupsHeader = "Groups",
+    yLabel = "Counts",
+    colorRange = ["#762a83", "#af8dc3", "#e7d4e8", "#7fbf7b", "#1b7837"];
+
+drawSmallMultipleBarChart(dataFile, targDiv, groupsHeader, yLabel, colorRange);
+
+
+// var dataFile = "state_data.csv", 
+//     targDiv = "#chart2",
+//     groupsHeader = "State",
+//     yLabel = "Population",
+//     colorRange = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"];
+
+// drawGroupedBarChart(dataFile, targDiv, groupsHeader, yLabel, colorRange);
+
+
+
+
+</script>
