@@ -34,6 +34,8 @@ function drawGroupedBarChart(dataFile, targ, grpHeader, yLabel, colorRange){
    var svg = d3.select(targ).append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
+      .attr('viewBox', "0 0 900 500")
+      .attr('preserveAspectRatio', "xMidYMid meet")
     .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
