@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 12px sans-serif;
+  background-color: teal;
+}
+
+.buttons-div
+{
+  margin: 0 auto;
+  width: 140px;
+  height: 140px;
+  position: absolute;
+}
+
+</style>
+<body>
+
+<h1>Buttons with Colors2</h1>
+<p>Example of using form elements to control DOM and Very Simple Chart with D3.</p>
+
+<div class='container' >
+	<div class="buttons-div">
+	  <h2>Select Variables</h2>
+	</div>
+	<div id="chart1"></div>
+</div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+drawRadioButtons();
+drawChart();
+
+
+function drawChart(){
+	console.log('draw chart!!');
+	var margin = {top: 40, right: 40, bottom: 100, left: 180},
+    // width = parseInt(d3.select('#chart').style('width'), 10);
+    // width = width - margin.left - margin.right;
+    // height = parseInt(d3.select('#chart').style('height'), 10);
+    // height = height - margin.top - margin.bottom;
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom; 
+
+	var targ = d3.select("#chart1");
+
+	var svg = targ.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + width/2 + "," +height/2 + ")");
+
+    svg.append('rect')
+    	.attr('id', 'box')
+    	.attr('x', 0)
+    	.attr('y', 0)
+    	.attr('width', 100)
+    	.attr('height', 100)
+    	.style('fill', 'grey')
+}
+
+
+function drawRadioButtons(){
+	var targ = d3.select(".buttons-div");
+
+	var grp1 = {'name': 'Background Colors', 'buttons': [
+					{'value':'teal', 'label':'teal', 'checked':true},
+					{'value':'DarkSeaGreen', 'label':'DarkSeaGreen', 'checked':false},
+					{'value':'RosyBrown', 'label':'RosyBrown', 'checked':false},
+					{'value':'LightSteelBlue', 'label':'LightSteelBlue', 'checked':false} ]}
+												
+	targ.append('div')
+		.append('p')
+		.text(function(){return grp1['name']; });
+
+	for(button in grp1['buttons']){
+		var b = grp1['buttons'][button];
+		console.log(b['label'])
+		drawRadioButton(targ, grp1['name'], b['label'], b['value'], b['checked'])
+	}	
+
+
+
+	var grp2 = {'name': 'Box Colors', 'buttons': [
+					{'value':'teal', 'label':'teal', 'checked':false},
+					{'value':'red', 'label':'red', 'checked':false},
+					{'value':'blue', 'label':'blue', 'checked':false},
+					{'value':'grey', 'label':'grey', 'checked':true},
+					{'value':'green', 'label':'green', 'checked':false} ]}
+												
+	targ.append('div')
+		.append('p')
+		.text(function(){return grp2['name']; });
+
+	for(button in grp2['buttons']){
+		var b = grp2['buttons'][button];
+		console.log(b['label'])
+		drawRadioButton(targ, grp2['name'], b['label'], b['value'], b['checked'])
+	}	
+
+}
+
+//-------------------------------------------------------------------------------------
+
+// event listeners and actions
+var inputElems = d3.selectAll("input");
+
+inputElems.on("change", changeColor);
+
+function changeColor(){
+
+	console.log(this.name)
+
+	if(this.name == "Background Colors"){
+	  	d3.select('body').style('background-color', this.value)
+	}
+
+	if(this.name == "Box Colors"){
+	  	d3.select('#box').style('fill', this.value)
+	}
+}
+
+
+//-------------------------------------------------------------------------------------
+
+//ToDo: move font sizing to external css, and give this a group-class for styling!!
+function drawRadioButton(targ_div, grp_name, label_txt, value, checked, fontsize){
+	if(checked === undefined) { checked = false; }
+	if(fontsize===undefined){ fontsize = '10px'}
+
+	var button = targ_div.append('div')
+		
+	button.append('label')
+			.text(function(d){ return label_txt; })
+			.style('font-size', fontsize)
+		
+	var radio = button.append('input')
+		.attr('type', 'radio')
+		.attr('name', grp_name)
+		.attr('value', value)
+		.style('float', 'left')
+		.style('vertical-align', 'bottom')
+		
+	if(checked){ radio.attr('checked', 'checked') }		
+
+	targ_div.append('br') 
+
+	return button;
+}
+
+
+</script>
