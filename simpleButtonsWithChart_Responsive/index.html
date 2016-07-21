@@ -194,6 +194,7 @@ function resize() {
 
     // update chart dimensions
     width = window_width - margin.left - margin.right;
+    width = width > margin_default*4 ? width : margin_default*4; // make sure we don't get too small
     height = (width*h_percent) - margin.top - margin.bottom;
 
     // update colors, to reflect user selections before resizing
