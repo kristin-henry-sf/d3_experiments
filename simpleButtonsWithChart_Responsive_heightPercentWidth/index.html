@@ -29,10 +29,10 @@ body {
 
 <h1>Buttons with Colors2</h1>
 <p>Example of using form elements to control DOM and Very Simple Chart with D3. Is it responsive yet?</p>
-<p>What to do with the buttons not resizing?  Hide the input buttons when window gets too small to show chart + buttons</p>
+<p>ToDo: look into using 'no-overflow' thing to keep chart from getting longer every window resize....</p>
 
 <div class='container' >
-	<div class="buttons-div" id="menu"></div>
+	<div class="buttons-div"></div>
 	<div id="chart1"></div>
 </div>
 
@@ -42,15 +42,9 @@ body {
 var targ_div = "#chart1"
 var chart_name = 'chart_svg'
 
-var background_color;
-var box_color = 'grey';
 
 var max_height = 500;
-var min_width = 400;
-var margin_left = 180; // for repositioning chart, after hiding buttons on resize
-var margin_default = 40;
-
-var margin = {top: margin_default, right: margin_default, bottom: margin_default, left: margin_left},
+var margin = {top: 40, right: 40, bottom: 40, left: 180},
     width = 960 - margin.left - margin.right,
     h_percent = .6;
     height = (width*h_percent) - margin.top - margin.bottom; 
@@ -60,6 +54,7 @@ drawChart();
 
 
 function drawChart(){
+	console.log('draw chart!!');
 	
 	var targ = d3.select(targ_div);
 
@@ -75,7 +70,7 @@ function drawChart(){
     	.attr('y', 0)
     	.attr('width', width)
     	.attr('height', height)
-    	.style('fill', box_color)
+    	.style('fill', 'grey')
 }
 
 
@@ -103,7 +98,7 @@ function drawRadioButtons(){
 
 	for(button in grp1['buttons']){
 		var b = grp1['buttons'][button];
-		//console.log(b['label'])
+		console.log(b['label'])
 		drawRadioButton(targ, grp1['name'], b['label'], b['value'], b['checked'])
 	}	
 
@@ -114,7 +109,7 @@ function drawRadioButtons(){
 
 	for(button in grp2['buttons']){
 		var b = grp2['buttons'][button];
-		//console.log(b['label'])
+		console.log(b['label'])
 		drawRadioButton(targ, grp2['name'], b['label'], b['value'], b['checked'])
 	}	
 
@@ -129,13 +124,13 @@ inputElems.on("change", changeColor);
 
 function changeColor(){
 
+	console.log(this.name)
+
 	if(this.name == "Background Colors"){
-		background_color = this.value;
 	  	d3.select('body').style('background-color', this.value)
 	}
 
 	if(this.name == "Box Colors"){
-		box_color = this.value;
 	  	d3.select('#box').style('fill', this.value)
 	}
 }
@@ -169,40 +164,25 @@ function drawRadioButton(targ_div, grp_name, label_txt, value, checked, fontsize
 }
 
 
-// Note: might want to resize chart when device/window stops moving, to reduce processor usage
 d3.select(window).on('resize', resize); 
 
 function resize() {
     
-    var window_width = parseInt(d3.select(targ_div).style('width'), 10);
-    var test_width = min_width + margin_left; 
-    
-
-    if(width <= min_width){
-    	// hide controls here
-    	d3.select("#menu").style('visibility', 'hidden');
-    	margin.left = margin_default;
-    }  
-
-
-    
-    if(margin.left == margin_default  && window_width > test_width){
-    	// show controls again
-    	d3.select("#menu").style('visibility', 'visible');
-    	margin.left = margin_left;
-    }
-
-    // update chart dimensions
-    width = window_width - margin.left - margin.right;
+    width = parseInt(d3.select(targ_div).style('width'), 10) - margin.left - margin.right;
     height = (width*h_percent) - margin.top - margin.bottom;
 
-    // update colors, to reflect user selections before resizing
-    d3.select('body').style('background-color', background_color);
- 	d3.select('#box').style('fill', box_color);
+    //var new_height = parseInt(d3.select(targ_div).style('height'), 10);
+    // new_height = new_height < max_height ? new_height: max_height; 
+
+    // height = new_height - margin.top - margin.bottom;
 
 
-    // clear last graph, and redraw it
+    console.log('resize');
+    console.log(width, height);
+
+
     d3.select("#" +chart_name).remove();
+
     drawChart();
 
 }
