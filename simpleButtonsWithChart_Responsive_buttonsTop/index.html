@@ -22,6 +22,14 @@ body {
 	  position:absolute;
 }
 
+label{
+	margin-left: 12px;
+}
+
+input[type="radio"]{
+  margin: 0 8px 0 0px;
+}
+
 
 
 </style>
@@ -46,11 +54,11 @@ var chart_name = 'chart_svg'
 var background_color;
 var box_color = 'grey';
 
-var max_height = 500; //500;
+var max_height = 500;
 var min_height = 300;
 var h_ratio = .6;
-var max_width = 900; //max_height*w_ratio;
-var min_width = 400; //min_height*w_ratio;
+var max_width = 900; 
+var min_width = 400; 
 
 
 var menu_height = 100;
@@ -65,6 +73,11 @@ drawRadioButtons();
 
 
 resize();
+
+function getWindowSize(){
+	// ToDo: make this cross-browser and cross-container 
+	return { 'w': window.innerWidth, 'h': window.innerHeight }
+}
 
 
 function drawChartContainer(){
@@ -101,6 +114,7 @@ function drawRadioButtons(){
 
 	var grp1 = {'name': 'Background Colors', 'buttons': [
 					{'value':'Teal', 'label':'Teal', 'checked':true},
+					{'value':'Grey', 'label':'Grey', 'checked':false},
 					{'value':'DarkSeaGreen', 'label':'DarkSeaGreen', 'checked':false},
 					{'value':'RosyBrown', 'label':'RosyBrown', 'checked':false},
 					{'value':'LightSteelBlue', 'label':'LightSteelBlue', 'checked':false} ]}
@@ -108,10 +122,10 @@ function drawRadioButtons(){
 	
 
 	var grp2 = {'name': 'Box Colors', 'buttons': [
-					{'value':'MediumAquaMarine ', 'label':'MediumAquaMarine ', 'checked':false},
-					{'value':'DarkRed', 'label':'DarkRed', 'checked':false},
 					{'value':'Grey', 'label':'Grey', 'checked':true},
-					{'value':'PaleGreen', 'label':'PaleGreen', 'checked':false} ]}
+					{'value':'DarkRed', 'label':'DarkRed', 'checked':false},
+					{'value':'PaleGreen', 'label':'PaleGreen', 'checked':false},
+					{'value':'MediumAquaMarine ', 'label':'MediumAquaMarine ', 'checked':false}]}
 												
 	
 	var buttons_1 = d3.select('#buttons-div').append('div');
@@ -161,8 +175,6 @@ function changeColor(){
 function drawRadioButton(targ_div, grp_name, label_txt, value, checked, fontsize){
 	if(checked === undefined) { checked = false; }
 	if(fontsize===undefined){ fontsize = '10px'}
-
-	//targ_div.append('br');
 	
 	var button = targ_div.append('label')
 					.text(function(d){ return label_txt; })
@@ -173,6 +185,7 @@ function drawRadioButton(targ_div, grp_name, label_txt, value, checked, fontsize
 		.attr('name', grp_name)
 		.attr('value', value)
 		.style('vertical-align', 'bottom')
+		.style('margin-left', '10px')
 	
 		
 	if(checked){ radio.attr('checked', 'checked') }		
@@ -186,58 +199,32 @@ d3.select(window).on('resize', resize);
 
 function resize() {
     
-	var margin_height = margin.bottom; //margin.top + margin.bottom;
+	var margin_height = margin.top + margin.bottom;
 	var margin_width = margin.left + margin.right;
 
-    var window_height = parseInt(d3.select(targ_div).style('height'), 10);
-    var window_width = parseInt(d3.select(targ_div).style('width'), 10);
+	var window_size = getWindowSize();
+    var container_height = parseInt(d3.select(targ_div).style('height'), 10);
+    var container_width = parseInt(d3.select(targ_div).style('width'), 10);
     var test_height = min_height + margin_height; 
 
-    console.log('win_w: ', window_width, 'win_h: ', window_height)
-    console.log(' width: ', width, 'height: ', height)
 
+    if(window_size.h -margin_height < window_size.w*h_ratio){
+	    // resize, based on height of container
+	    height = window_size.h - margin_height;
+	    height = height > margin_height ? height : margin_height; // make sure don't get too small
+	    width = parseInt(height/h_ratio);
+    } else {
 
+	    // resize, based on width of container
+	   	width = container_width - margin_width;
+	    width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
+	    height = parseInt(width * h_ratio);
+	}
 
-    // // resize, based on height of container
-    // height = window_height - margin_height;
-    // height = height > margin_height ? height : margin_height; // make sure don't get too small
-    // width = parseInt(height/h_ratio);
-
-
-    // resize, based on width of container
-   	width = window_width - margin_width;
-    width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
-    height = parseInt(width * h_ratio);
-
-    console.log('win_w: ', window_width, 'win_h: ', window_height)
-    console.log(' width: ', width, 'height: ', height)
-    console.log(margin_height)
-
-   if(height > window_height-margin_height){
-   	console.log('resize by height')
-   }
 
    //d3.select("#buttons-div").style('display', 'none');
    //toshow use ('display', 'visible')
-   d3.select("#buttons-div").style('display', 'inline');
-    
-
-    // console.log('height: ', height)
-    // console.log('margin_height', margin_height)
-    // console.log('h1-margin_height', h1 - margin_height)
-    // console.log('window_height', window_height, 'h1', h1)
-    // console.log('height/w_ratio', height/h_ratio, 'width', width, 'win_w', window_width)
-
-    
-    // if(height > window_height-margin_height){
-    // 	console.log('limit by height')
-    // }
-
-
-
-
-    console.log('-----------------', parseInt(d3.select(container_div).style('height'), 10));
-
+   //d3.select("#buttons-div").style('display', 'inline');
 
 
     // update colors, to reflect user selections before resizing
@@ -249,6 +236,5 @@ function resize() {
     d3.select("#" +chart_name).remove();
     drawChart();
 }
-//resize();
 
 </script>
