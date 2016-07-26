@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 12px sans-serif;
+  background-color: teal;
+}
+
+.container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	bottom: 0;
+}
+
+#buttons-div {
+	  margin: 0 auto;
+	  margin-left: 40px
+	  width: 500px;
+	  height: 100px;
+	  position:absolute;
+}
+
+label{
+	margin-left: 12px;
+}
+
+input[type="radio"]{
+  margin: 0 8px 0 0px;
+}
+
+
+
+</style>
+<body>
+
+<h1>Buttons with Colors3</h1>
+<p>Example of using form elements to control DOM and Very Simple Chart with D3. With button/controls at bottom instead of side</p>
+<p>Responsive resizing. What to do with the buttons not resizing?  Hide the input buttons when window gets too small to show chart + buttons</p>
+
+<div class='container' id='container'>
+	<div id="chart1"></div>
+	<div id="buttons-div" width='100%'></div>	
+</div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var container_div = '#container'
+var targ_div = "#chart1"
+var chart_name = 'chart_svg'
+
+var background_color;
+var box_color = 'grey';
+
+var max_height = 500;
+var min_height = 300;
+var h_ratio = .6;
+var max_width = 900; 
+var min_width = 400; 
+
+
+var menu_height = 120;
+
+// need room at bottom for buttons, so bigger margin at bottom 
+var margin = {top: 40, right: 40, bottom: menu_height, left: 40},
+    width=1000,
+    height=600;
+    
+drawChartContainer();
+drawRadioButtons();
+
+
+resize();
+
+function getWindowSize(){
+	// ToDo: make this cross-browser and cross-container 
+	return { 'w': window.innerWidth, 'h': window.innerHeight }
+}
+
+
+function drawChartContainer(){
+	var targ = d3.select(targ_div);
+
+	var svg = targ.append("svg").attr('id', chart_name).attr('class', 'chart')
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    return svg;
+}
+
+
+function drawChart(){
+	
+	var svg = drawChartContainer();
+	svg.attr('height', height+menu_height)
+	console.log('chart before drawing buttons', svg.attr('height'))
+
+    svg.append('rect')
+    	.attr('id', 'box')
+    	.attr('x', 0)
+    	.attr('y', 0)
+    	.attr('width', width)
+    	.attr('height', height)
+    	.style('fill', box_color)
+}
+
+
+function drawRadioButtons(){
+	//var targ = d3.select("#buttons-div");
+
+	var grp1 = {'name': 'Background Colors', 'buttons': [
+					{'value':'Teal', 'label':'Teal', 'checked':true},
+					{'value':'Grey', 'label':'Grey', 'checked':false},
+					{'value':'DarkSeaGreen', 'label':'DarkSeaGreen', 'checked':false},
+					{'value':'RosyBrown', 'label':'RosyBrown', 'checked':false},
+					{'value':'LightSteelBlue', 'label':'LightSteelBlue', 'checked':false} ]}
+												
+	
+
+	var grp2 = {'name': 'Box Colors', 'buttons': [
+					{'value':'Grey', 'label':'Grey', 'checked':true},
+					{'value':'DarkRed', 'label':'DarkRed', 'checked':false},
+					{'value':'PaleGreen', 'label':'PaleGreen', 'checked':false},
+					{'value':'MediumAquaMarine ', 'label':'MediumAquaMarine ', 'checked':false}]}
+												
+	
+	var buttons_1 = d3.select('#buttons-div').append('div');
+	buttons_1.append('text').text(grp1['name'] +":  ");
+	targ = buttons_1; //d3.select('#buttons-div')
+	for(button in grp1['buttons']){
+		var b = grp1['buttons'][button];
+		drawRadioButton(targ, grp1['name'], b['label'], b['value'], b['checked'])
+	}	
+
+
+	var buttons_2 = d3.select('#buttons-div').append('div');
+	buttons_2.append('text').text(grp2['name'] +":  ");
+	targ = buttons_2; //d3.select('#buttons-div')
+	for(button in grp2['buttons']){
+		var b = grp2['buttons'][button];
+		drawRadioButton(targ, grp2['name'], b['label'], b['value'], b['checked'])
+	}	
+
+}
+
+//-------------------------------------------------------------------------------------
+
+// event listeners and actions
+var inputElems = d3.selectAll("input");
+
+inputElems.on("change", changeColor);
+
+function changeColor(){
+
+	if(this.name == "Background Colors"){
+		background_color = this.value;
+	  	d3.select('body').style('background-color', this.value)
+	}
+
+	if(this.name == "Box Colors"){
+		box_color = this.value;
+	  	d3.select('#box').style('fill', this.value)
+	}
+}
+
+
+//-------------------------------------------------------------------------------------
+
+//ToDo: move font sizing to external css, and give this a group-class for styling!!
+//ToDo: move radio-dot to left of text, without float!!!!
+function drawRadioButton(targ_div, grp_name, label_txt, value, checked, fontsize){
+	if(checked === undefined) { checked = false; }
+	if(fontsize===undefined){ fontsize = '10px'}
+	
+	var button = targ_div.append('label')
+					.text(function(d){ return label_txt; })
+			 		.style('font-size', fontsize)
+
+	var radio = button.append('input')
+		.attr('type', 'radio')
+		.attr('name', grp_name)
+		.attr('value', value)
+		.style('vertical-align', 'bottom')
+		.style('margin-left', '10px')
+	
+		
+	if(checked){ radio.attr('checked', 'checked') }		
+
+	return button;
+}
+
+
+// Note: might want to resize chart when device/window stops moving, to reduce processor usage
+d3.select(window).on('resize', resize); 
+
+function resize() {
+    
+	var margin_height = margin.top + margin.bottom;
+	var margin_width = margin.left + margin.right;
+
+	var window_size = getWindowSize();
+    var container_height = parseInt(d3.select(targ_div).style('height'), 10);
+    var container_width = parseInt(d3.select(targ_div).style('width'), 10);
+    var test_height = min_height + margin_height; 
+
+
+    if(window_size.h -margin_height < window_size.w*h_ratio){
+	    // resize, based on height of container
+	    height = window_size.h - margin_height;
+	    height = height > margin_height ? height : margin_height; // make sure don't get too small
+	    width = parseInt(height/h_ratio);
+    } else {
+
+	    // resize, based on width of container
+	   	width = container_width - margin_width;
+	    width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
+	    height = parseInt(width * h_ratio);
+	}
+
+
+   //d3.select("#buttons-div").style('display', 'none');
+   //toshow use ('display', 'visible')
+   //d3.select("#buttons-div").style('display', 'inline');
+
+
+    // update colors, to reflect user selections before resizing
+    d3.select('body').style('background-color', background_color);
+ 	d3.select('#box').style('fill', box_color);
+
+
+    // clear last graph, and redraw it
+    d3.select("#" +chart_name).remove();
+    drawChart();
+}
+
+</script>
