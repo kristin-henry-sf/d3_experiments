@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #ccc;
+}
+
+
+  .demo {
+    border:1px solid;
+    border-collapse:collapse;
+    padding:5px;
+  }
+  .demo th {
+    border:1px solid;
+    padding:5px;
+    background:#F0F0F0;
+  }
+  .demo td {
+    border:1px solid;
+    padding:5px;
+  }
+
+.center-div
+{
+  margin: 0 auto;
+  width: 500px;
+  height: 100px;
+}
+
+#chart {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+</style>
+<body>
+
+<h1>Shopping Activity</h1>
+<p>Each dot represents a shopping 'basket' session (unique visitor).</p>
+
+<div>
+<div id="chart1"></div>
+
+<div class="center-div">
+<form>
+<table class="demo">
+  <caption>Select Variables</caption>
+  <thead>
+  <tr>
+    <th>X axis</th>
+    <th>Y axis</th>
+    <th>Circle Size</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <td>
+      <fieldset id="x_values">
+      <label><input type="radio" name="x_values" value="total" checked="checked" />Purchase total</label>
+      <br>
+      <label><input type="radio" name="x_values" value="visits" />Page visits</label>
+      <br>
+      <label><input type="radio" name="x_values" value="visitsNonPurchase" />Non purchase visits</label>
+      <br>
+      <label><input type="radio" name="x_values" value="items" />Items purchased</label>
+      </fieldset>
+    </td>
+    <td>
+      <fieldset id="y_values">
+      <label><input type="radio" name="y_values" value="total" />Purchase total</label>
+      <br>
+      <label><input type="radio" name="y_values" value="visits" />Page visits</label>
+      <br>
+      <label><input type="radio" name="y_values" value="visitsNonPurchase" checked="checked" />Non purchase visits</label>
+      <br>
+      <label><input type="radio" name="y_values" value="items" />Items purchased</label>
+      </fieldset>
+    </td>
+    <td>
+      <fieldset id="r_values">
+      <label><input type="radio" name="r_values" value="total" />Purchase total</label>
+      <br>
+      <label><input type="radio" name="r_values" value="visits" />Page visits</label>
+      <br>
+      <label><input type="radio" name="r_values" value="visitsNonPurchase" />Non purchase visits</label>
+      <br>
+      <label><input type="radio" name="r_values" value="items" checked="checked"  />Items purchased</label>
+      </fieldset>
+    </td>
+  </tr> 
+  </tbody>
+</table>
+</form>
+</div>
+</div>
+
+ 
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var targ = "#chart1";
+var targ_div = "#chart1";
+
+var colorRange = ["#ccc","#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
+                  "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"]
+
+var h_ratio = .6;
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    // width = parseInt(d3.select(targ).style('width'), 10);
+    // width = width - margin.left - margin.right;
+    // height = parseInt(d3.select(targ).style('height'), 10);
+    // height = height - margin.top - margin.bottom;
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+
+var r = d3.scale.linear()
+    .range([2, 20]);
+
+//var color = d3.scale.category10();
+var color = d3.scale.ordinal()
+      .range(colorRange);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+
+var svgTarg = d3.select(targ);
+var svg = svgTarg.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var xValue = 'total'; //'visitsNonPurchase'; //'visits'; //'itemTypes';//'items';
+var yValue = 'visitsNonPurchase';//'visits'//'itemTypes';//'items';
+var rValue = 'items'; //'itemTypes'; //'visits'// 'total'; 
+var colorValue = 'type';
+var xAxisLabel = xValue; //'total purchase ($)';//'visits NonPurchase'; //'unique item types';//'Total ($)';
+var yAxisLabel = yValue; //'visits non purchase'; //'unique item types in purchase'; //'items purchased';
+var filterValue = xValue;
+var filterMax = 5000;
+
+var extents = {};
+
+// d3.csv("test_output_short.csv", function(error, data) {
+d3.csv("shopping_data_anon.csv", function(error, data) {
+  if (error) throw error;
+
+  // make sure all numerical values are numbers and not strings
+  data.forEach(function(d) {
+    d.visitsNonPurchase = +d.visitsNonPurchase;
+    d.total = +d.total; 
+    d.items = +d.items;
+    d.visits = +d.visits;
+    d.itemTypes = +d.itemTypes;
+  });
+  
+
+  var colNames = ['total', 'visits', 'itemTypes', 'visitsNonPurchase', 'items'];
+  for(col in colNames){
+    var name = colNames[col];
+    extents[name] = [0, d3.max(data, function(d) { return d[name]<filterMax ? d[name]: 0; })];
+  }
+
+  console.log(extents);
+
+  x.domain(extents[xValue]).nice();
+  y.domain(extents[yValue]).nice();
+  r.domain(extents[rValue]).nice();
+
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr('id', 'x_axis')
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text(xAxisLabel)
+      
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .attr('id', 'y_axis')
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text(yAxisLabel);
+      
+
+  svg.selectAll(".dot")
+      .data(data)
+    .enter().append("circle")
+    //.filter(function(d) { return d[filterValue] < filterMax })
+      .attr("class", "dot")
+      .attr("r", function(d){ return r(d[rValue]); })// .attr("r", 3.5)
+      .attr("cx", function(d) { return x(d[xValue]); })
+      .attr("cy", function(d) { return y(d[yValue]); })
+      .style('opacity', function(d){ return d[colorValue]=='none' ? .4:1; })
+      .style("fill", function(d) { return color(d[colorValue]); });
+
+  var legend = svg.selectAll(".legend")
+      .data(color.domain())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 18)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color)
+      .on("click", function(d){ console.log('test', d, this); updateFromLegend(d, this);});
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
+
+});
+
+
+
+function updateFromLegend(t, targ){
+  var button = d3.select(targ);
+  var op = button.attr('opacity');
+  if( op == .2){
+    button.attr('opacity', 1);
+  } else {
+    button.attr('opacity', .2);
+  }
+
+  var op_new = 1;
+  if(t=='none'){ op_new = .4; }
+  
+  svg.selectAll('.dot')
+        .filter(function(d) { return d['type'] == t; })
+        .transition().duration(200)
+        .style('opacity', function(d){ return op == .2 ? op_new:0; })
+}
+
+function updateChart(){
+
+  var axisX = svg.select("#x_axis")
+      .transition().duration(200).ease("sin-in-out")
+      .call(xAxis)
+      .select('.label').text(xValue);
+
+  var axisY = svg.select("#y_axis")
+      .transition().duration(200).ease("sin-in-out")
+      .call(yAxis)
+      .select('.label').text(yValue);
+
+  svg.selectAll(".dot")
+      .transition().duration(200).ease("sin-in-out")
+      .attr("r", function(d){  return r(d[rValue]); })
+      .attr("cx", function(d) { return x(d[xValue]); })
+      .attr("cy", function(d) { return y(d[yValue]); })
+
+}
+
+
+// ToDo: organize this better, so there's less code duplication with update()
+function updateLegend(){
+    console.log('redraw');
+
+    var legend = svg.selectAll(".legend")
+      //.attr("transform", function(d, i) { return "translate(" + 0 + "," + i * 20 + ")"; });
+    legend.selectAll('rect')
+      .transition().duration(200).ease('sin-in-out')
+      .attr('x', function(){ return width - 80; })
+
+
+    legend.selectAll('text')
+      .transition().duration(200).ease('sin-in-out')
+      .attr('x', function(){ return width -80-10; })
+
+}
+
+//------------------------------------------------------
+// event listeners
+//------------------------------------------------------
+
+var inputElems = d3.selectAll("input");
+
+inputElems.on("change", changeAxis);
+
+function changeAxis(){
+
+  if(this.name == 'x_values'){
+    xValue = this.value;
+    x.domain(extents[xValue]).nice();
+  }
+
+  if(this.name == 'y_values'){
+    yValue = this.value;
+    y.domain(extents[yValue]).nice();
+  } 
+
+  if(this.name == 'r_values'){
+    rValue = this.value;
+    r.domain(extents[rValue]).nice();
+  }
+
+  updateChart();
+}
+
+
+d3.select(window).on('resize', resize); 
+
+function resize() {
+    console.log('resize')
+
+    // width = parseInt(d3.select(targ).style('width'), 10);
+    // width = width - margin.left - margin.right;
+    // height = parseInt(d3.select(targ).style('height'), 10);
+    // height = height - margin.top - margin.bottom;
+
+
+    var margin_height = margin.top + margin.bottom;
+    var margin_width = margin.left + margin.right;
+
+    var window_size = getWindowSize();
+      var container_height = parseInt(d3.select(targ_div).style('height'), 10);
+      var container_width = parseInt(d3.select(targ_div).style('width'), 10);
+      //var test_height = min_height + margin_height; 
+
+
+      if(window_size.h -margin_height < window_size.w*h_ratio){
+        // resize, based on height of container
+        height = window_size.h - margin_height;
+        height = height > margin_height ? height : margin_height; // make sure don't get too small
+        width = parseInt(height/h_ratio);
+      } else {
+
+        // resize, based on width of container
+        width = container_width - margin_width;
+        width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
+        height = parseInt(width * h_ratio);
+      }
+
+
+    console.log(width, height)
+
+    x.range([0, width]);
+    y.range([height, 0]);
+
+    x.domain(extents[xValue]).nice();
+    y.domain(extents[yValue]).nice();
+    r.domain(extents[rValue]).nice();
+
+    updateChart();
+    updateLegend();
+}
+// resize();
+
+
+
+function getWindowSize(){
+  // ToDo: make this cross-browser and cross-container 
+  return { 'w': window.innerWidth, 'h': window.innerHeight }
+}
+
+
+</script>
+
