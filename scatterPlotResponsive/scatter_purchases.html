@@ -121,10 +121,6 @@ var colorRange = ["#ccc","#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
 var h_ratio = .6;
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    // width = parseInt(d3.select(targ).style('width'), 10);
-    // width = width - margin.left - margin.right;
-    // height = parseInt(d3.select(targ).style('height'), 10);
-    // height = height - margin.top - margin.bottom;
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -254,6 +250,8 @@ d3.csv("shopping_data_anon.csv", function(error, data) {
       .text(function(d) { return d; });
 
 });
+
+resize();
 
 
 
