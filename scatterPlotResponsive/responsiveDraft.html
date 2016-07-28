@@ -130,7 +130,7 @@ function drawRadioButtons(){
 	for(button in grp1['buttons']){
 		var b = grp1['buttons'][button];
 		drawRadioButton(targ, grp1['name'], b['label'], b['value'], b['checked'])
-	}	
+	}	  
 
 
 	var buttons_2 = d3.select('#buttons-div').append('div');
@@ -236,7 +236,8 @@ function resize() {
 
 function getWindowSize(){
 	// ToDo: make this cross-browser and cross-container 
-	return { 'w': window.innerWidth, 'h': window.innerHeight }
+	//return { 'w': window.innerWidth, 'h': window.innerHeight }
+	return { 'w': document.documentElement.clientWidth, 'h': document.documentElement.clientHeight}
 }
 
 

@@ -119,10 +119,10 @@ var colorRange = ["#ccc","#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
                   "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"]
 
 var h_ratio = .6;
-
-var margin = {top: 20, right: 20, bottom: 130, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+var chart_size = getWindowSize();
+var margin = {top: 20, right: 40, bottom: 130, left: 40},
+    width = chart_size.w - margin.left - margin.right,
+    height = chart_size.h - margin.top - margin.bottom;
 
 var x = d3.scale.linear()
     .range([0, width]);
@@ -148,7 +148,7 @@ var yAxis = d3.svg.axis()
 
 
 var svgTarg = d3.select(targ);
-var svg = svgTarg.append("svg")
+var svg = svgTarg.append("svg").attr('id', 'container')
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -165,34 +165,10 @@ var filterMax = 5000;
 
 var extents = {};
 
-// d3.csv("test_output_short.csv", function(error, data) {
-d3.csv("shopping_data_anon.csv", function(error, data) {
-  if (error) throw error;
 
-  // make sure all numerical values are numbers and not strings
-  data.forEach(function(d) {
-    d.visitsNonPurchase = +d.visitsNonPurchase;
-    d.total = +d.total; 
-    d.items = +d.items;
-    d.visits = +d.visits;
-    d.itemTypes = +d.itemTypes;
-  });
-  
+function drawChart(data){
 
-  var colNames = ['total', 'visits', 'itemTypes', 'visitsNonPurchase', 'items'];
-  for(col in colNames){
-    var name = colNames[col];
-    extents[name] = [0, d3.max(data, function(d) { return d[name]<filterMax ? d[name]: 0; })];
-  }
-
-  console.log(extents);
-
-  x.domain(extents[xValue]).nice();
-  y.domain(extents[yValue]).nice();
-  r.domain(extents[rValue]).nice();
-
-
-  svg.append("g")
+    svg.append("g")
       .attr("class", "x axis")
       .attr('id', 'x_axis')
       .attr("transform", "translate(0," + height + ")")
@@ -203,9 +179,8 @@ d3.csv("shopping_data_anon.csv", function(error, data) {
       .attr("y", -6)
       .style("text-anchor", "end")
       .text(xAxisLabel)
-      
 
-  svg.append("g")
+    svg.append("g")
       .attr("class", "y axis")
       .attr('id', 'y_axis')
       .call(yAxis)
@@ -216,9 +191,8 @@ d3.csv("shopping_data_anon.csv", function(error, data) {
       .attr("dy", ".71em")
       .style("text-anchor", "end")
       .text(yAxisLabel);
-      
 
-  svg.selectAll(".dot")
+    svg.selectAll(".dot")
       .data(data)
     .enter().append("circle")
     //.filter(function(d) { return d[filterValue] < filterMax })
@@ -229,6 +203,9 @@ d3.csv("shopping_data_anon.csv", function(error, data) {
       .style('opacity', function(d){ return d[colorValue]=='none' ? .4:1; })
       .style("fill", function(d) { return color(d[colorValue]); });
 
+}
+
+function drawLegend(data){
   var legend = svg.selectAll(".legend")
       .data(color.domain())
     .enter().append("g")
@@ -248,11 +225,37 @@ d3.csv("shopping_data_anon.csv", function(error, data) {
       .attr("dy", ".35em")
       .style("text-anchor", "end")
       .text(function(d) { return d; });
+}
+
+
+// d3.csv("test_output_short.csv", function(error, data) {
+d3.csv("shopping_data_anon_tiny.csv", function(error, data) {
+  if (error) throw error;
+
+  // make sure all numerical values are numbers and not strings
+  data.forEach(function(d) {
+    d.visitsNonPurchase = +d.visitsNonPurchase;
+    d.total = +d.total; 
+    d.items = +d.items;
+    d.visits = +d.visits;
+    d.itemTypes = +d.itemTypes;
+  });
+  
+
+  var colNames = ['total', 'visits', 'itemTypes', 'visitsNonPurchase', 'items'];
+  for(col in colNames){
+    var name = colNames[col];
+    extents[name] = [0, d3.max(data, function(d) { return d[name]<filterMax ? d[name]: 0; })];
+  }
+
+  x.domain(extents[xValue]).nice();
+  y.domain(extents[yValue]).nice();
+  r.domain(extents[rValue]).nice();
+
+  drawChart(data);
+  drawLegend(data);
 
 });
-
-resize();
-
 
 
 function updateFromLegend(t, targ){
@@ -277,8 +280,10 @@ function updateChart(){
 
   var axisX = svg.select("#x_axis")
       .transition().duration(200).ease("sin-in-out")
+      .attr("transform", "translate(0," + height + ")")
       .call(xAxis)
-      .select('.label').text(xValue);
+      .select('.label').text(xValue)
+      .attr("x", width);
 
   var axisY = svg.select("#y_axis")
       .transition().duration(200).ease("sin-in-out")
@@ -320,6 +325,7 @@ var inputElems = d3.selectAll("input");
 inputElems.on("change", changeAxis);
 
 function changeAxis(){
+  console.log('change axis data')
 
   if(this.name == 'x_values'){
     xValue = this.value;
@@ -345,19 +351,13 @@ d3.select(window).on('resize', resize);
 function resize() {
     console.log('resize')
 
-    // width = parseInt(d3.select(targ).style('width'), 10);
-    // width = width - margin.left - margin.right;
-    // height = parseInt(d3.select(targ).style('height'), 10);
-    // height = height - margin.top - margin.bottom;
-
-
     var margin_height = margin.top + margin.bottom;
     var margin_width = margin.left + margin.right;
 
     var window_size = getWindowSize();
-      var container_height = parseInt(d3.select(targ_div).style('height'), 10);
-      var container_width = parseInt(d3.select(targ_div).style('width'), 10);
-      //var test_height = min_height + margin_height; 
+    var container = d3.select('#container')
+    container.attr('width', window_size.w)
+            .attr('height', window_size.h);
 
 
       if(window_size.h -margin_height < window_size.w*h_ratio){
@@ -368,10 +368,15 @@ function resize() {
       } else {
 
         // resize, based on width of container
-        width = container_width - margin_width;
+        //width = container_width - margin_width;
+        width = window_size.w - margin_width;
         width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
         height = parseInt(width * h_ratio);
       }
+
+
+    svg.attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
 
 
     console.log(width, height)
@@ -379,9 +384,8 @@ function resize() {
     x.range([0, width]);
     y.range([height, 0]);
 
-    x.domain(extents[xValue]).nice();
-    y.domain(extents[yValue]).nice();
-    r.domain(extents[rValue]).nice();
+    console.log(x.range())
+    console.log(y.range())
 
     updateChart();
     updateLegend();
@@ -392,9 +396,11 @@ function resize() {
 
 function getWindowSize(){
   // ToDo: make this cross-browser and cross-container 
-  return { 'w': window.innerWidth, 'h': window.innerHeight }
+  //return { 'w': window.innerWidth, 'h': window.innerHeight }
+  return { 'w': document.documentElement.clientWidth, 'h': document.documentElement.clientHeight}
 }
 
 
 </script>
+
 
