@@ -33,12 +33,14 @@ body {
     padding:5px;
   }
 
+
 .center-div
 {
   /*margin: 0 auto;*/
   margin-left: 40px;
-  width: 500px;
-  height: 140px;
+  margin-right: 40px;
+  /*width: 200px;*/
+  /*height: 140px;*/
 }
 
 #chart {
@@ -63,7 +65,7 @@ body {
 <h1>Shopping Activity</h1>
 <p>Each dot represents a shopping 'basket' session (unique visitor).</p>
 
-<div>
+<div id="main_div">
 <div id="chart1"></div>
 
 <div class="center-div">
@@ -134,7 +136,7 @@ var h_ratio = .6;
 var win_size = getWindowSize();
 
 var display_menu = false; 
-var menu_size = {width: 200, height: 240 };
+var menu_size = {width: 500, height: 240 };
 
 var margin = {top: 20, right: 40, bottom: 40, left: 40},
     width = win_size.w - margin.left - margin.right,
@@ -357,10 +359,12 @@ function menuButtonAction(){
 
 function changeMenuDisplay(){
   if(display_menu){
-    d3.select("#menu").style('display', 'inline');
+    d3.select("#menu").style('display', 'inline')
+    d3.select("#center-div").attr('width', menu_size.width);
     
   } else {
-    d3.select("#menu").style('display', 'none'); 
+    d3.select("#menu").style('display', 'none');
+    d3.select('#center-div').attr('width', '10px'); 
   }
   resize();
 }
@@ -408,33 +412,24 @@ function resize() {
 
     var chart_height = display_menu ? window_size.h - menu_size.height : window_size.h;
 
-    // var chart_height = window_size.h;
-    // if(display_menu){
-    //   chart_height = window_size.h - menu_size.height;
-    // }
-
 
     if(chart_height < window_size.w*h_ratio){
       // resize, based on height of container
-      console.log('resize by height');
       height = chart_height - margin_height;
       height = height > margin_height*2 ? height : margin_height; // make sure don't get too small
       width = parseInt(height/h_ratio);
     } else {
-      console.log('resize by width');
       // resize, based on width of container
       width = window_size.w - margin_width;
       width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
       height = parseInt(width * h_ratio);
     }
 
-    console.log('height', height)
 
     d3.select('#container')
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
    
-
     x.range([0, width]);
     y.range([height, 0]);
 
