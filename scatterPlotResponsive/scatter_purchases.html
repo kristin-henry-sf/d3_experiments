@@ -114,17 +114,20 @@ body {
 
 var targ = "#chart1";
 var targ_div = "#chart1";
-var display_menu = false; 
+
 
 var colorRange = ["#ccc","#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
                   "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"]
 
 var h_ratio = .6;
-var chart_size = getWindowSize();
-var buttons_size = {width: 200, height: 100 };
+var win_size = getWindowSize();
+
+var display_menu = false; 
+var menu_size = {width: 200, height: 340 };
+
 var margin = {top: 20, right: 40, bottom: 40, left: 40},
-    width = chart_size.w - margin.left - margin.right,
-    height = chart_size.h - margin.top - margin.bottom;
+    width = win_size.w - margin.left - margin.right,
+    height = win_size.h - margin.top - margin.bottom;
 
 var x = d3.scale.linear()
     .range([0, width]);
@@ -348,9 +351,10 @@ function changeMenuDisplay(){
     d3.select("#menu").style('display', 'inline');
     
   } else {
-    d3.select("#menu").style('display', 'none');
-    
+    d3.select("#menu").style('display', 'none'); 
   }
+
+  resize();
 }
 
 
@@ -396,19 +400,35 @@ function resize() {
 
     var window_size = getWindowSize();
 
+    console.log('display menu, from resize fxn: ', display_menu)
+
+    //var chart_height = display_menu ? window_size.h - menu_size.height : window_size.h;
+
+    var chart_height = window_size.h;
+    console.log('old chart_height', chart_height);
+    if(display_menu){
+      chart_height = window_size.h - menu_size.height;
+      console.log('new chart height', chart_height, '  menu_size.height', menu_size.height)
+    }
+
+
+
     //if(window_size.h -margin_height < window_size.w*h_ratio){
-    if(window_size.h - buttons_size.width < window_size.w*h_ratio){
+    if(chart_height < window_size.w*h_ratio){
       // resize, based on height of container
-      height = window_size.h - margin_height;
-      height = height > margin_height ? height : margin_height; // make sure don't get too small
+      console.log('resize by height');
+      height = chart_height - margin_height;
+      height = height > margin_height*2 ? height : margin_height; // make sure don't get too small
       width = parseInt(height/h_ratio);
     } else {
-
+      console.log('resize by width');
       // resize, based on width of container
       width = window_size.w - margin_width;
       width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
       height = parseInt(width * h_ratio);
     }
+
+    console.log('height', height)
 
     d3.select('#container')
     .attr("width", width + margin.left + margin.right)
