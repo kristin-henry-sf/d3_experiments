@@ -37,7 +37,7 @@ body {
 {
   margin: 0 auto;
   width: 500px;
-  height: 100px;
+  height: 140px;
 }
 
 #chart {
@@ -56,9 +56,9 @@ body {
 <div id="chart1"></div>
 
 <div class="center-div">
-<form>
+<div>Change Variables <input type="button"  id="panel_button" name="menu_display_control" value="x"></input></div>
+<div id="menu">
 <table class="demo">
-  <caption>Select Variables</caption>
   <thead>
   <tr>
     <th>X axis</th>
@@ -104,7 +104,7 @@ body {
   </tr> 
   </tbody>
 </table>
-</form>
+</menu>
 </div>
 </div>
 
@@ -120,7 +120,8 @@ var colorRange = ["#ccc","#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
 
 var h_ratio = .6;
 var chart_size = getWindowSize();
-var margin = {top: 20, right: 40, bottom: 130, left: 40},
+var buttons_size = {width: 200, height: 100 };
+var margin = {top: 20, right: 40, bottom: 40, left: 40},
     width = chart_size.w - margin.left - margin.right,
     height = chart_size.h - margin.top - margin.bottom;
 
@@ -165,6 +166,38 @@ var filterMax = 5000;
 
 var extents = {};
 
+
+
+
+// d3.csv("test_output_short.csv", function(error, data) {
+d3.csv("shopping_data_anon_tiny.csv", function(error, data) {
+  if (error) throw error;
+
+  // make sure all numerical values are numbers and not strings
+  data.forEach(function(d) {
+    d.visitsNonPurchase = +d.visitsNonPurchase;
+    d.total = +d.total; 
+    d.items = +d.items;
+    d.visits = +d.visits;
+    d.itemTypes = +d.itemTypes;
+  });
+  
+
+  var colNames = ['total', 'visits', 'itemTypes', 'visitsNonPurchase', 'items'];
+  for(col in colNames){
+    var name = colNames[col];
+    extents[name] = [0, d3.max(data, function(d) { return d[name]<filterMax ? d[name]: 0; })];
+  }
+
+  x.domain(extents[xValue]).nice();
+  y.domain(extents[yValue]).nice();
+  r.domain(extents[rValue]).nice();
+
+  resize();
+  drawChart(data);
+  drawLegend(data);
+
+});
 
 function drawChart(data){
 
@@ -228,35 +261,6 @@ function drawLegend(data){
 }
 
 
-// d3.csv("test_output_short.csv", function(error, data) {
-d3.csv("shopping_data_anon_tiny.csv", function(error, data) {
-  if (error) throw error;
-
-  // make sure all numerical values are numbers and not strings
-  data.forEach(function(d) {
-    d.visitsNonPurchase = +d.visitsNonPurchase;
-    d.total = +d.total; 
-    d.items = +d.items;
-    d.visits = +d.visits;
-    d.itemTypes = +d.itemTypes;
-  });
-  
-
-  var colNames = ['total', 'visits', 'itemTypes', 'visitsNonPurchase', 'items'];
-  for(col in colNames){
-    var name = colNames[col];
-    extents[name] = [0, d3.max(data, function(d) { return d[name]<filterMax ? d[name]: 0; })];
-  }
-
-  x.domain(extents[xValue]).nice();
-  y.domain(extents[yValue]).nice();
-  r.domain(extents[rValue]).nice();
-
-  drawChart(data);
-  drawLegend(data);
-
-});
-
 
 function updateFromLegend(t, targ){
   var button = d3.select(targ);
@@ -304,7 +308,7 @@ function updateLegend(){
     console.log('redraw');
 
     var legend = svg.selectAll(".legend")
-      //.attr("transform", function(d, i) { return "translate(" + 0 + "," + i * 20 + ")"; });
+      .attr("transform", function(d, i) { return "translate(" + 0 + "," + i * 20 + ")"; });
     legend.selectAll('rect')
       .transition().duration(200).ease('sin-in-out')
       .attr('x', function(){ return width - 80; })
@@ -319,13 +323,35 @@ function updateLegend(){
 //------------------------------------------------------
 // event listeners
 //------------------------------------------------------
+document.getElementById("panel_button").onclick = hideRevealMenu;
+
+function hideRevealMenu(){
+  console.log('hide or reveal menu')
+  console.log(this)
+  if(this.value == 'x'){
+    d3.select("#menu").style('display', 'none');
+    //toshow use ('display', 'visible')
+    //d3.select("#buttons-div").style('display', 'inline');
+
+    this.value = '+';
+  } else {
+    d3.select("#menu").style('display', 'inline');
+    this.value = 'x';
+  }
+
+}
+
+
 
 var inputElems = d3.selectAll("input");
 
 inputElems.on("change", changeAxis);
 
 function changeAxis(){
-  console.log('change axis data')
+
+  console.log(this.name);
+
+  //console.log('change axis data')
 
   if(this.name == 'x_values'){
     xValue = this.value;
@@ -349,53 +375,44 @@ function changeAxis(){
 d3.select(window).on('resize', resize); 
 
 function resize() {
-    console.log('resize')
+    // ToDo: make sure resize doesn't get 'stuck' when transitioning btw
+    //         resizing based on width and based on height...there is a certain width
+    //         that seems to not fill whole width but does fill height...troubleshoot this!
 
     var margin_height = margin.top + margin.bottom;
     var margin_width = margin.left + margin.right;
 
     var window_size = getWindowSize();
-    var container = d3.select('#container')
-    container.attr('width', window_size.w)
-            .attr('height', window_size.h);
 
+    //if(window_size.h -margin_height < window_size.w*h_ratio){
+    if(window_size.h - buttons_size.width < window_size.w*h_ratio){
+      // resize, based on height of container
+      height = window_size.h - margin_height;
+      height = height > margin_height ? height : margin_height; // make sure don't get too small
+      width = parseInt(height/h_ratio);
+    } else {
 
-      if(window_size.h -margin_height < window_size.w*h_ratio){
-        // resize, based on height of container
-        height = window_size.h - margin_height;
-        height = height > margin_height ? height : margin_height; // make sure don't get too small
-        width = parseInt(height/h_ratio);
-      } else {
+      // resize, based on width of container
+      width = window_size.w - margin_width;
+      width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
+      height = parseInt(width * h_ratio);
+    }
 
-        // resize, based on width of container
-        //width = container_width - margin_width;
-        width = window_size.w - margin_width;
-        width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
-        height = parseInt(width * h_ratio);
-      }
-
-
-    svg.attr("width", width + margin.left + margin.right)
+    d3.select('#container')
+    .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-
-
-    console.log(width, height)
+   
 
     x.range([0, width]);
     y.range([height, 0]);
 
-    console.log(x.range())
-    console.log(y.range())
-
     updateChart();
     updateLegend();
 }
-// resize();
-
 
 
 function getWindowSize(){
-  // ToDo: make this cross-browser and cross-container 
+  // ToDo: make this more cross-browser and cross-container 
   //return { 'w': window.innerWidth, 'h': window.innerHeight }
   return { 'w': document.documentElement.clientWidth, 'h': document.documentElement.clientHeight}
 }
