@@ -56,7 +56,7 @@ body {
 <div id="chart1"></div>
 
 <div class="center-div">
-<div>Change Variables <input type="button"  id="panel_button" name="menu_display_control" value="x"></input></div>
+<div>Change Variables <input type="button"  id="panel_button" name="menu_display_control" value="+"></input></div>
 <div id="menu">
 <table class="demo">
   <thead>
@@ -114,6 +114,7 @@ body {
 
 var targ = "#chart1";
 var targ_div = "#chart1";
+var display_menu = false; 
 
 var colorRange = ["#ccc","#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
                   "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"]
@@ -193,6 +194,7 @@ d3.csv("shopping_data_anon_tiny.csv", function(error, data) {
   y.domain(extents[yValue]).nice();
   r.domain(extents[rValue]).nice();
 
+  changeMenuDisplay();
   resize();
   drawChart(data);
   drawLegend(data);
@@ -323,22 +325,32 @@ function updateLegend(){
 //------------------------------------------------------
 // event listeners
 //------------------------------------------------------
-document.getElementById("panel_button").onclick = hideRevealMenu;
+document.getElementById("panel_button").onclick = menuButtonAction;
 
-function hideRevealMenu(){
-  console.log('hide or reveal menu')
-  console.log(this)
+function menuButtonAction(){
+  // update button
   if(this.value == 'x'){
-    d3.select("#menu").style('display', 'none');
-    //toshow use ('display', 'visible')
-    //d3.select("#buttons-div").style('display', 'inline');
-
-    this.value = '+';
+    display_menu = false;
+    this.value = '+'; // changing button action to be reaady to show menu
   } else {
-    d3.select("#menu").style('display', 'inline');
-    this.value = 'x';
+    display_menu = true; 
+    this.value = 'x'; // changing button action to be ready to hide menu
   }
 
+  // updatae display of menu and chart size
+  changeMenuDisplay();
+
+}
+
+function changeMenuDisplay(){
+  console.log('display_menu: ', display_menu);
+  if(display_menu){
+    d3.select("#menu").style('display', 'inline');
+    
+  } else {
+    d3.select("#menu").style('display', 'none');
+    
+  }
 }
 
 
