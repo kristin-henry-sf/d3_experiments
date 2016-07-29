@@ -14,7 +14,7 @@ body {
 }
 
 .dot {
-  stroke: #ccc;
+  /*stroke: #ccc;*/
 }
 
 
@@ -138,6 +138,8 @@ var win_size = getWindowSize();
 var display_menu = false; 
 var menu_size = {width: 500, height: 240 };
 
+var width_min = 100;
+
 var margin = {top: 20, right: 40, bottom: 40, left: 40},
     width = win_size.w - margin.left - margin.right,
     height = win_size.h - margin.top - margin.bottom;
@@ -186,8 +188,8 @@ var extents = {};
 
 
 
-// d3.csv("test_output_short.csv", function(error, data) {
-d3.csv("shopping_data_anon_tiny.csv", function(error, data) {
+d3.csv("shopping_data_anon.csv", function(error, data) {
+//d3.csv("shopping_data_anon_tiny.csv", function(error, data) {
   if (error) throw error;
 
   // make sure all numerical values are numbers and not strings
@@ -268,7 +270,7 @@ function drawLegend(data){
       .attr("width", 18)
       .attr("height", 18)
       .style("fill", color)
-      .on("click", function(d){ console.log('test', d, this); updateFromLegend(d, this);});
+      .on("click", function(d){ updateFromLegend(d, this);});
 
   legend.append("text")
       .attr("x", width - 24)
@@ -323,7 +325,7 @@ function updateChart(){
 
 // ToDo: organize this better, so there's less code duplication with update()
 function updateLegend(){
-    console.log('redraw');
+    //console.log('redraw');
 
     var legend = svg.selectAll(".legend")
       .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
@@ -408,8 +410,9 @@ function resize() {
 
     var window_size = getWindowSize();
 
-    console.log('display menu, from resize fxn: ', display_menu)
+    //console.log('display menu, from resize fxn: ', display_menu)
 
+    // check if we're showing menu, and fill window with only chart if no menu
     var chart_height = display_menu ? window_size.h - menu_size.height : window_size.h;
 
 
@@ -420,8 +423,8 @@ function resize() {
       width = parseInt(height/h_ratio);
     } else {
       // resize, based on width of container
-      width = window_size.w - margin_width;
-      width = width > margin_width*2 ? width : margin_width*2; // make sure we don't get too small
+      width = window_size.w - margin_width - 100;  // the -100 is a hack! find better way to avoid scrollbar
+      width = width > width_min ? width : width_min; // make sure we don't get too small
       height = parseInt(width * h_ratio);
     }
 
