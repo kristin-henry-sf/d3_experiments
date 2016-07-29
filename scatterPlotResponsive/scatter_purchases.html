@@ -313,15 +313,15 @@ function updateLegend(){
     console.log('redraw');
 
     var legend = svg.selectAll(".legend")
-      .attr("transform", function(d, i) { return "translate(" + 0 + "," + i * 20 + ")"; });
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
     legend.selectAll('rect')
       .transition().duration(200).ease('sin-in-out')
-      .attr('x', function(){ return width - 80; })
+      .attr('x', function(){ return width - 18; })
 
 
     legend.selectAll('text')
       .transition().duration(200).ease('sin-in-out')
-      .attr('x', function(){ return width -80-10; })
+      .attr('x', function(){ return width -24; })
 
 }
 
