@@ -35,7 +35,8 @@ body {
 
 .center-div
 {
-  margin: 0 auto;
+  /*margin: 0 auto;*/
+  margin-left: 40px;
   width: 500px;
   height: 140px;
 }
@@ -45,6 +46,16 @@ body {
   height: 100%;
   position: absolute;
 }
+
+#menu {
+  padding-top: 40px;
+}
+
+#menu_header {
+  margin-bottom: 10px;
+}
+
+
 
 </style>
 <body>
@@ -56,7 +67,7 @@ body {
 <div id="chart1"></div>
 
 <div class="center-div">
-<div>Change Variables <input type="button"  id="panel_button" name="menu_display_control" value="+"></input></div>
+<div id="menu_header">Change Variables <input type="button"  id="panel_button" name="menu_display_control" value="+"></input></div>
 <div id="menu">
 <table class="demo">
   <thead>
@@ -123,7 +134,7 @@ var h_ratio = .6;
 var win_size = getWindowSize();
 
 var display_menu = false; 
-var menu_size = {width: 200, height: 340 };
+var menu_size = {width: 200, height: 240 };
 
 var margin = {top: 20, right: 40, bottom: 40, left: 40},
     width = win_size.w - margin.left - margin.right,
@@ -342,18 +353,15 @@ function menuButtonAction(){
 
   // updatae display of menu and chart size
   changeMenuDisplay();
-
 }
 
 function changeMenuDisplay(){
-  console.log('display_menu: ', display_menu);
   if(display_menu){
     d3.select("#menu").style('display', 'inline');
     
   } else {
     d3.select("#menu").style('display', 'none'); 
   }
-
   resize();
 }
 
@@ -364,10 +372,6 @@ var inputElems = d3.selectAll("input");
 inputElems.on("change", changeAxis);
 
 function changeAxis(){
-
-  console.log(this.name);
-
-  //console.log('change axis data')
 
   if(this.name == 'x_values'){
     xValue = this.value;
@@ -402,18 +406,14 @@ function resize() {
 
     console.log('display menu, from resize fxn: ', display_menu)
 
-    //var chart_height = display_menu ? window_size.h - menu_size.height : window_size.h;
+    var chart_height = display_menu ? window_size.h - menu_size.height : window_size.h;
 
-    var chart_height = window_size.h;
-    console.log('old chart_height', chart_height);
-    if(display_menu){
-      chart_height = window_size.h - menu_size.height;
-      console.log('new chart height', chart_height, '  menu_size.height', menu_size.height)
-    }
+    // var chart_height = window_size.h;
+    // if(display_menu){
+    //   chart_height = window_size.h - menu_size.height;
+    // }
 
 
-
-    //if(window_size.h -margin_height < window_size.w*h_ratio){
     if(chart_height < window_size.w*h_ratio){
       // resize, based on height of container
       console.log('resize by height');
