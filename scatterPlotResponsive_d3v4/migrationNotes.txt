@@ -1,0 +1,81 @@
+migration notes
+
+1. get new version form d3.org: https://d3js.org/
+2. replace <script src="d3.min.js"></script> with version 4: <script src="d3.v4.min.js"></script>
+3. check if anything still works...
+
+4. Start with namespace changes  'the great namespace flattening':
+	scales...
+
+		d3.scale.linear -->  d3.scaleLinear
+
+
+5. Axes: 
+
+			svg.append("g")
+      			.attr("transform", "translate(0," + height + ")")
+      			// .call(xAxis)  --> remove this fxn from earlier code, now a default style
+      			.call(d3.axisBottom(x))
+
+
+      		--what about axes labels?
+      			-- was slightly more tricky. had to change how I appended label
+      			--append axes label to svg instead of to axis...have to look more into this
+      			-> https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e
+
+      		-- Not done with Axes yet, have to rewrite updateChart which changes axes
+      			--> transition-ease raised an error --> commenting out, and coming back to that later
+
+      			1 --> change call to new axis syntax
+      			2 --> use id instead of class to select label, and set new value from button
+      						(previously, was selecitng class within axis element. 
+      						 now label is it's own element)
+
+	      			var axisX = svg.select("#x_axis")
+				      .transition().duration(200)//.ease("sin-in-out")
+				      .attr("transform", "translate(0," + height + ")")
+				      .call(d3.axisBottom(x))  //.call(xAxis)
+				  	d3.select('#xlabel').text(xValue)
+
+
+
+6. Easing transitions:
+	--getting back to this, now the axes and labels are working properly
+
+	--Transitions a little different in v4.
+
+	Code for applying an ease to a transition:
+
+				var t = d3.transition()
+				    .duration(750)
+				    .ease(d3.easeLinear);
+
+				d3.selectAll(".apple").transition(t)
+				    .style("fill", "red");
+
+				d3.selectAll(".orange").transition(t)
+				    .style("fill", "orange");
+
+				--example from https://github.com/d3/d3-transition
+
+	--> in my code:
+
+			.transition.duration(200).ease('sin-in-out')
+
+		becomes
+
+			.transition.duration(200).ease(d3.easeSinInOut)
+
+
+		ie:
+
+			svg.selectAll(".dot")
+		      .transition().duration(200).ease(d3.easeSinInOut)//.ease("sin-in-out")
+			      .attr("cx", function(d) { return x(d[xValue]); })
+			      .attr("cy", function(d) { return y(d[yValue]); })
+
+
+
+
+			--examples from bostock:
+				-> https://bl.ocks.org/mbostock/b2fee5dae98555cf78c9e4c5074b87c3
