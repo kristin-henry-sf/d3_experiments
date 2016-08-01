@@ -75,6 +75,17 @@ migration notes
 			      .attr("cy", function(d) { return y(d[yValue]); })
 
 
+7. Side effect that need fixing:
+	
+	- x-axis label stopped moving with axis on chart resize:
+
+		--> add code to update position of this text element on updateChart.
+				--position was previously updated as part of axis element
+				--now need to reposition indepentently
+
+
+
+
 
 
 			--examples from bostock:
